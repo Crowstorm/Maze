@@ -9,7 +9,7 @@ class Maze extends React.Component {
         this.state = {
             grid: [],
             exit: [],
-            value: '',
+            value: null,
             startX: '',
             startY: ''
         };
@@ -60,16 +60,16 @@ class Maze extends React.Component {
             return (
                 <div className="row d-flex justify-content-center align-items-center" style={{ margin: 0 }}>
                     {_.map(row, cell => {
-                        console.log(this.state.grid[cell.x][cell.y])
+                       // console.log(this.state.grid[cell.x][cell.y])
                         return (
                             <div
                                 id={'d' + cell.x + '_' + cell.y}
-                                style={{ height: 100, width: 100, boxSizing: 'border-box', border: '1px solid red', fontSize: '3em', color: 'white' }}>
+                                style={{ height: 100, width: 100, boxSizing: 'border-box', border: '1px solid red', fontSize: '2em', color: 'red' }}>
                                 {cell.type}
                                 <div>
-                                <button style={{height: 30, width:30}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'o'; this.setState({value: ''})}}> o</button>
-                                <button style={{height: 30, width:30}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 's'; this.setState({value: ''})}}> s</button>
-                                <button style={{height: 30, width:30}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'w'; this.setState({value: ''})}}> w </button>
+                                <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'o'; this.setState({value: ''})}}> o</span>
+                                <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 's'; this.setState({value: ''})}}> s</span>
+                                <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'w'; this.setState({value: ''})}}> w </span>
                                 </div>
                             </div>
                         )
@@ -93,7 +93,22 @@ class Maze extends React.Component {
         })
     }
 
-    findTest() {
+    findStart2() {
+        _.map(this.state.grid, row => {
+            _.map(row, cell => {
+                if (cell.type === 's') {
+                    console.log(cell.x, cell.y)
+                    this.state.startX = cell.x;
+                    this.state.startY = cell.y;
+                }
+            }
+            )
+        })
+        console.log('to ja',this.state.startX, this.state.startY);
+    }
+
+    findTest(passedGrid) {
+        console.log('moj gridek', passedGrid)
         var pathFinder = (entranceX, entranceY, grid) => {
             var distanceFromTop = entranceX;
             var distanceFromLeft = entranceY;
@@ -227,16 +242,13 @@ class Maze extends React.Component {
 
             return newLocation;
         }
-        console.log(pathFinder(this.props.entranceY, this.props.entranceX, grid2));
+        console.log(pathFinder(this.state.startY, this.state.startX, passedGrid));
     }
 
     componentDidMount() {
-        this.findStart();
+        this.findStart(grid2);
         // pathFinder(this.props.entranceY, this.props.entranceX, grid2)
-        console.log(grid[0][1], 'asdasdasd');
-
     }
-
 
 
     render() {
@@ -245,7 +257,8 @@ class Maze extends React.Component {
             <div>
                 <div id="maze">
                     <p style={{ color: 'white' }}> Przygotowane gridy </p>
-                    {this.renderGrid()}
+                    {/* {this.renderGrid()} */}
+
                     {/* <div style={{ color: 'white' }}>
                         Start: {this.props.entranceX}, {this.props.entranceY}
                     </div>
@@ -270,6 +283,9 @@ class Maze extends React.Component {
 
                     {/* <button onClick={() => this.renderDynamicGrid()}> Wyrenderuj nowy grid </button> */}
                     {this.renderDynamicGrid()}
+                    <button onClick={() => this.findStart2()}> Click </button>
+                    <button onClick={() => this.findTest(this.state.grid)}> Click </button>
+                    <div style={{ color: 'white' }}> Droga: {this.state.exit} </div>
                 </div>
             </div>
         )
