@@ -9,7 +9,7 @@ class Maze extends React.Component {
         this.state = {
             grid: [],
             exit: [],
-            value: null,
+            value: '',
             startX: '',
             startY: ''
         };
@@ -18,12 +18,15 @@ class Maze extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
+    //Zapisanie stanu formularza do stanu aplikacji
     handleChange(event) {
         this.setState({ value: event.target.value });
     }
 
+    //Na podstawie stanu aplikacji wyrenderowanie labiryntu
     handleSubmit(event) {
         event.preventDefault();
+        //wyczyszczenie
         this.setState({ value: '' });
 
         for (let i = 0; i < this.state.value; i++) {
@@ -34,7 +37,7 @@ class Maze extends React.Component {
         }
     }
 
-    //render maze
+    //render labiryntu
     renderGrid() {
         return _.map(grid2, row => {
             return (
@@ -54,19 +57,20 @@ class Maze extends React.Component {
         })
     }
 
+    //render dynamicznego labiryntu
     renderDynamicGrid() {
     
         return _.map(this.state.grid, row => {
             return (
                 <div className="row d-flex justify-content-center align-items-center" style={{ margin: 0 }}>
                     {_.map(row, cell => {
-                       // console.log(this.state.grid[cell.x][cell.y])
                         return (
                             <div
                                 id={'d' + cell.x + '_' + cell.y}
                                 style={{ height: 100, width: 100, boxSizing: 'border-box', border: '1px solid red', fontSize: '2em', color: 'red' }}>
                                 {cell.type}
                                 <div>
+                             {/* Funkcje do zmiany wlasciwosci kratki w labiryncie */}
                                 <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'o'; this.setState({value: ''})}}> o</span>
                                 <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 's'; this.setState({value: ''})}}> s</span>
                                 <span style={{height: 30, width:30, fontSize: 20, color: 'white'}} onClick={()=> {this.state.grid[cell.y][cell.x].type = 'w'; this.setState({value: ''})}}> w </span>
@@ -79,36 +83,23 @@ class Maze extends React.Component {
         })
     }
 
-    //Finding the entrance to the maze
-    findStart() {
-        _.map(grid2, row => {
-            _.map(row, cell => {
-                if (cell.type === 's') {
-                    console.log(cell.x, cell.y)
-                    this.props.handleSetEntranceX(cell.x);
-                    this.props.handleSetEntranceY(cell.y);
-                }
-            }
-            )
-        })
-    }
-
+    //Znalezienie startu
     findStart2() {
         _.map(this.state.grid, row => {
             _.map(row, cell => {
                 if (cell.type === 's') {
-                    console.log(cell.x, cell.y)
+                    // console.log(cell.x, cell.y)
                     this.state.startX = cell.x;
                     this.state.startY = cell.y;
                 }
             }
             )
         })
-        console.log('to ja',this.state.startX, this.state.startY);
     }
 
-    findTest(passedGrid) {
-        console.log('moj gridek', passedGrid)
+    //Szukanie drogi na podstawie przekazanego labiryntu
+    findWay(passedGrid) {
+        // console.log('moj gridek', passedGrid)
         var pathFinder = (entranceX, entranceY, grid) => {
             var distanceFromTop = entranceX;
             var distanceFromLeft = entranceY;
@@ -120,13 +111,9 @@ class Maze extends React.Component {
                 status: 'Start'
             }
 
-
-            console.log('start', location)
-
             //inicjalizacja kolejki
             var queue = [];
             queue.push(location);
-            console.log('kolejka', queue[0])
 
             //loop grida
             while (queue.length > 0) {
@@ -134,7 +121,7 @@ class Maze extends React.Component {
 
                 //polnoc
                 var newLocation = explore(currentLocation, 'North', grid);
-                //wyjscie
+                //jesli wyjscie przekazac do stanu aplikacji kolejke z najkrotsza sciezka
                 if (newLocation.status === 'Exit') {
                     this.setState(prevState => ({
                         exit: [...prevState.exit, newLocation.path]
@@ -158,7 +145,6 @@ class Maze extends React.Component {
 
                 //poludnie
                 var newLocation = explore(currentLocation, 'South', grid);
-                console.log(newLocation, 'nowa')
                 if (newLocation.status === 'Exit') {
                     this.setState(prevState => ({
                         exit: [...prevState.exit, newLocation.path]
@@ -180,6 +166,9 @@ class Maze extends React.Component {
                 }
             }
             //nie znaleziono drogi
+            this.setState(prevState => ({
+                exit: [...prevState.exit, 'Nie znaleziono wyjścia, ten grobowiec będzie twoim grobowcem']
+            }))
             return false;
         }
 
@@ -188,8 +177,8 @@ class Maze extends React.Component {
             let gridSize = grid.length;
             let dft = location.distanceFromTop;
             let dfl = location.distanceFromLeft;
-            console.log(gridSize, 'size')
-            console.log(location)
+            // console.log(gridSize, 'size')
+            // console.log(location)
             // console.log(grid, dft, dfl);
 
             if (location.distanceFromLeft < 0 ||
@@ -198,10 +187,13 @@ class Maze extends React.Component {
                 location.distanceFromTop >= gridSize) {
                 //poza gridem
                 return 'Invalid';
+                //jesli wyjscie
             } else if (grid[dft][dfl].type === 'w') {
                 return 'Exit';
+                //jesli nie droga
             } else if (grid[dft][dfl].type !== 'o') {
                 return 'Blocked';
+                //jesli droga
             } else {
                 return 'Valid';
             }
@@ -231,7 +223,6 @@ class Maze extends React.Component {
                 path: newPath,
                 status: 'Unknown'
             };
-            console.log('griddd', grid)
 
             newLocation.status = locationStatus(newLocation, grid);
 
@@ -246,7 +237,6 @@ class Maze extends React.Component {
     }
 
     componentDidMount() {
-        this.findStart(grid2);
         // pathFinder(this.props.entranceY, this.props.entranceX, grid2)
     }
 
@@ -256,7 +246,7 @@ class Maze extends React.Component {
         return (
             <div>
                 <div id="maze">
-                    <p style={{ color: 'white' }}> Przygotowane gridy </p>
+                    {/* <p style={{ color: 'white' }}> Przygotowane gridy </p> */}
                     {/* {this.renderGrid()} */}
 
                     {/* <div style={{ color: 'white' }}>
@@ -269,11 +259,13 @@ class Maze extends React.Component {
                         Current position: {this.props.currentX}, {this.props.currentY}
                     </div> */}
 
-                    <button onClick={() => this.findTest()}> Click </button>
-                    <div style={{ color: 'white' }}> Droga: {this.state.exit} </div>
+                    {/* // <button onClick={() => this.findTest()}> Click </button>
+                    // <div style={{ color: 'white' }}> Droga: {this.state.exit} </div>
 
-                    <p style={{ color: 'white' }}> Gridy generowane: </p>
-                    <form onSubmit={this.handleSubmit}>
+                    // <p style={{ color: 'white' }}> Gridy generowane: </p> */}
+
+                    <h1 style={{ color: 'white', paddingTop: '1em' }}> Labirynt </h1>
+                     <form style={{ color: 'white', paddingTop: '1em' }} onSubmit={this.handleSubmit}>
                         <label>
                             Rozmiar:
                              <input type="text" value={this.state.value} onChange={this.handleChange} />
@@ -281,10 +273,9 @@ class Maze extends React.Component {
                         <input type="submit" value="Submit" />
                     </form>
 
-                    {/* <button onClick={() => this.renderDynamicGrid()}> Wyrenderuj nowy grid </button> */}
                     {this.renderDynamicGrid()}
-                    <button onClick={() => this.findStart2()}> Click </button>
-                    <button onClick={() => this.findTest(this.state.grid)}> Click </button>
+                    <button onClick={() => this.findStart2()}> Znajdź start </button>
+                    <button onClick={() => this.findWay(this.state.grid)}> Znajdź drogę </button>
                     <div style={{ color: 'white' }}> Droga: {this.state.exit} </div>
                 </div>
             </div>
