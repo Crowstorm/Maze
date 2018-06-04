@@ -88,7 +88,6 @@ class Maze extends React.Component {
         _.map(this.state.grid, row => {
             _.map(row, cell => {
                 if (cell.type === 's') {
-                    // console.log(cell.x, cell.y)
                     this.state.startX = cell.x;
                     this.state.startY = cell.y;
                 }
@@ -117,6 +116,7 @@ class Maze extends React.Component {
 
             //loop grida
             while (queue.length > 0) {
+                //zwrocenie pierwszego elementu z kolejki
                 var currentLocation = queue.shift();
 
                 //polnoc
@@ -190,7 +190,7 @@ class Maze extends React.Component {
                 //jesli wyjscie
             } else if (grid[dft][dfl].type === 'w') {
                 return 'Exit';
-                //jesli nie droga
+                //jesli nie droga (zablokowana lub odwiedzona)
             } else if (grid[dft][dfl].type !== 'o') {
                 return 'Blocked';
                 //jesli droga
@@ -226,7 +226,7 @@ class Maze extends React.Component {
 
             newLocation.status = locationStatus(newLocation, grid);
 
-            //odwiedzona
+            //jesli droga, to oznacz lokacje jako odwiedzoną
             if (newLocation.status === 'Valid') {
                 grid[newLocation.distanceFromTop][newLocation.distanceFromLeft] = 'Visited';
             }
